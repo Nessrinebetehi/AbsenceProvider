@@ -74,9 +74,24 @@ public class AbsenceProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        int rowsDeleted;
+        switch (uriMatcher.match(uri)) {
+            case ABSENCES:
+                rowsDeleted = database.delete("absences", selection, selectionArgs);
+                break;
+            case ABSENCE_ID:
+                rowsDeleted = database.delete("absences", "id = ?", new String[]{uri.getLastPathSegment()});
+                break;
+            default:
+                throw new IllegalArgumentException("URI inconnue: " + uri);
+        }
+        if (rowsDeleted > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+        return rowsDeleted;
     }
+
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
